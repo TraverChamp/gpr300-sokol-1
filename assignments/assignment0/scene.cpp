@@ -14,7 +14,13 @@
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
-    blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/default.fs");
+    blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
+
+    light = {
+        .brightness = 1.0f,
+        .color = {1.0f, 0.0f, 1.0f},
+        .position = {2.0f, 2.0f, 2.0f},
+    };
 }
 
 Scene::~Scene()
@@ -49,6 +55,14 @@ void Scene::Render(void)
     blinnphong->setMat4("view_proj", view_proj);
     blinnphong->setVec3("camera_position", camera.position);
 
+
+    blinnphong->setVec3("light.color", light.position);
+    blinnphong->setVec3("light.color", light.color);
+
+    blinnphong->setFloat("material.diffuse", debug.alpha);
+    blinnphong->setFloat("material.specular", debug.alpha);
+    blinnphong->setFloat("material.ambient", debug.alpha);
+    blinnphong->setFloat("material.shininess", debug.alpha);
     // draw suzanne
     suzanne->draw();
 }
@@ -59,19 +73,24 @@ void Scene::Debug(void)
     ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
     ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
-    glm::mat4 m{1.0f};
+
     auto *view = glm::value_ptr(camera.View());
     auto *proj = glm::value_ptr(camera.Projection());
     
-    ImGuizmo::DrawGrid(view, proj, glm::value_ptr(m), 100.0f);
+    ImGuizmo::DrawGrid(view, proj, glm::value_ptr(glm::mat4(1.0f)), 100.0f);
 
+    glm::mat4 light_matrix = glm::translate(glm::mat4(1.0f), light.position);
     ImGuizmo::Manipulate(
         view,
         proj,
-        ImGuizmo::ROTATE,
+        ImGuizmo::TRANSLATE,
         ImGuizmo::WORLD,
-        glm::value_ptr(matrix)
+        glm::value_ptr(light_matrix)
     );
+
+    if (ImGuizmo::IsUsing()) {
+        light.position =  glm::vec3(light_matrix[3]);
+    }
 
     cameracontroller.Debug();
 
@@ -80,6 +99,16 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
+    // light
+    ImGui::ColorEdit3("Light.color", &light.color[0]);
+
+    // material
+    // ImGui::SliderFloat3
+    // ImGui::SliderFloat3
+    // ImGui::SliderFloat3
+    // ImGui::SliderFloat
+
+    ImGui::DragFloat("Alpha", &debug.alpha);
     /* build debug ui here */
 
     ImGui::End();
