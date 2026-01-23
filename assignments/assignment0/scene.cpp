@@ -103,10 +103,10 @@ void Scene::Debug(void)
     ImGui::ColorEdit3("Light.color", &light.color[0]);
 
     // material
-    // ImGui::SliderFloat3
-    // ImGui::SliderFloat3
-    // ImGui::SliderFloat3
-    // ImGui::SliderFloat
+     ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+    ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+    ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &material.shininess, 2.0f, 1024.0f);
 
     ImGui::DragFloat("Alpha", &debug.alpha);
     /* build debug ui here */
