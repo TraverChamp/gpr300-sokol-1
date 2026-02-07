@@ -38,8 +38,9 @@ vec3 blinnPhong(vec3 normal, vec3 frag_pos, Light light) {
 
 void main()
 {
-  vec3 color = blinnPhong(vs_normal, vs_position, light);
-  vec3 objColor = vs_normal * 0.5 + 0.5;
-  vec3 finalC = objColor*color * light.color;
+  vec3 norm = normalize(vs_normal);
+  vec3 color = blinnPhong(norm, vs_position, light);
+  vec3 objColor = norm * 0.5 + 0.5;
+  vec3 finalC = color*objColor * light.color;
   FragColor = vec4(finalC, 1.0);
 }
