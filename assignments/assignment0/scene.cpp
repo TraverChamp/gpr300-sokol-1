@@ -21,6 +21,12 @@ Scene::Scene()
         .color = {1.0f, 0.0f, 1.0f},
         .position = {2.0f, 2.0f, 2.0f},
     };
+    material = {
+        .ambient = {0.5f, 0.5f, 0.5f},
+        .diffuse = {0.5f, 0.5f, 0.5f},
+        .specular = {0.5f, 0.5f, 0.5f},
+        .shininess = 1.0f,
+    };
 }
 
 Scene::~Scene()
@@ -59,10 +65,10 @@ void Scene::Render(void)
     blinnphong->setVec3("light.color", light.position);
     blinnphong->setVec3("light.color", light.color);
 
-    blinnphong->setFloat("material.diffuse", debug.alpha);
-    blinnphong->setFloat("material.specular", debug.alpha);
-    blinnphong->setFloat("material.ambient", debug.alpha);
-    blinnphong->setFloat("material.shininess", debug.alpha);
+    blinnphong->setVec3("material.diffuse", material.diffuse);
+    blinnphong->setVec3("material.specular", material.specular);
+    blinnphong->setVec3("material.ambient", material.ambient);
+    blinnphong->setFloat("material.shininess", material.shininess);
     // draw suzanne
     suzanne->draw();
 }

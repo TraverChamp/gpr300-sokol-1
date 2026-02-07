@@ -11,7 +11,7 @@ struct Material {
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
-  vec3 shininess;
+  float shininess;
 };
 // varyings
 in vec3 vs_position;
@@ -19,11 +19,10 @@ in vec3 vs_normal;
 in vec2 vs_texcoord;
 
 uniform vec3 camera;
-uniform float alpha;
 uniform Light light;
 uniform Material material;
 
-vec3 effect(vec3 normal, vec3 frag_pos, Light light) {
+vec3 blinnPhong(vec3 normal, vec3 frag_pos, Light light) {
   vec3 viewDir = normalize(camera - frag_pos);
   vec3 lightDir = normalize(light.pos - frag_pos);
   vec3 halfDir = normalize(viewDir + lightDir);
@@ -32,18 +31,15 @@ vec3 effect(vec3 normal, vec3 frag_pos, Light light) {
   float NDotH = max(dot(normal, halfDir), 0.0);
   
   vec3 diffuse = NDotL * material.diffuse;
-  vec3 specular = NDotH * material.specular;
+  vec3 specular = pow(NDotH, material.shininess *128.0) * material.specular;
 
-  vec3 lightCalc = vec3(diffuse) + vec3(pow(specular, material.shininess));
-
-  float pDotL = dot(frag_pos.xyz, light.pos.xyz);
-  return lightCalc * light.color;
+  return (diffuse + specular) * light.color;
 }
 
 void main()
 {
-  vec3 color = effect(vs_normal, vs_position, light);
+  vec3 color = blinnPhong(vs_normal, vs_position, light);
   vec3 objColor = vs_normal * 0.5 + 0.5;
-  vec3 finalC = objColor*color + material.ambient;
+  vec3 finalC = objColor*color * light.color;
   FragColor = vec4(finalC, 1.0);
 }
