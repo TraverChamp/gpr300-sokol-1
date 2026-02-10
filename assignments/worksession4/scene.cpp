@@ -14,7 +14,9 @@
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
-    blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
+    toonlighting = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/toonlighting.fs");
+
+    za_Toon = std::make_unique<ew::Texture>("assets/models/ZAtoon.png");
 
     light = {
         .brightness = 1.0f,
@@ -53,22 +55,25 @@ void Scene::Render(void)
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
     // glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,za_Toon->getID());
 
-    blinnphong->use();
+    toonlighting->use();
 
     // scene matrices
-    blinnphong->setMat4("model", matrix);
-    blinnphong->setMat4("view_proj", view_proj);
-    blinnphong->setVec3("camera_position", camera.position);
+    toonlighting->setMat4("model", matrix);
+    toonlighting->setMat4("view_proj", view_proj);
+    toonlighting->setVec3("camera_position", camera.position);
 
+    toonlighting->setInt("zaToon", 0);
 
-    blinnphong->setVec3("light.color", light.position);
-    blinnphong->setVec3("light.color", light.color);
+    toonlighting->setVec3("light.pos", light.position);
+    toonlighting->setVec3("light.color", light.color);
 
-    blinnphong->setVec3("material.diffuse", material.diffuse);
-    blinnphong->setVec3("material.specular", material.specular);
-    blinnphong->setVec3("material.ambient", material.ambient);
-    blinnphong->setFloat("material.shininess", material.shininess);
+    toonlighting->setVec3("material.diffuse", material.diffuse);
+    toonlighting->setVec3("material.specular", material.specular);
+    toonlighting->setVec3("material.ambient", material.ambient);
+    toonlighting->setFloat("material.shininess", material.shininess);
     // draw suzanne
     suzanne->draw();
 }

@@ -62,7 +62,7 @@ void Scene::Render(void)
     blinnphong->setVec3("camera_position", camera.position);
 
 
-    blinnphong->setVec3("light.color", light.position);
+    blinnphong->setVec3("light.pos", light.position);
     blinnphong->setVec3("light.color", light.color);
 
     blinnphong->setVec3("material.diffuse", material.diffuse);
