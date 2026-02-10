@@ -23,6 +23,9 @@ class Scene final : public batteries::Scene
     void Debug(void);
 
   private:
+  unsigned int fbo;
+  unsigned int fbo_color_0;
+  unsigned int fbo_depth;
     std::unique_ptr<ew::Model> suzanne;
     std::unique_ptr<ew::Shader> blinnphong;
 
