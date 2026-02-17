@@ -9,10 +9,20 @@ layout(location = 2) in vec2 in_texcoord;
 uniform mat4 view_proj;
 uniform mat4 model;
 
+
+uniform float time;
+
 // varyings
 out vec3 vs_position;
 out vec3 vs_normal;
 out vec2 vs_texcoord;
+
+float calcSurface(float x, float z) {
+  float y = 0.0;
+  y += sin(x * 1.0 + time * 0.75);
+  y += sin(z * 2.0 + time * 1.75);
+  return y;
+}
 
 void main()
 {
