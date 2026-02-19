@@ -143,5 +143,7 @@ void Scene::Debug(void)
         (void*)(intptr_t)fbo_color_0,
         ImVec2(400, 300),
         ImVec2(0, 1), ImVec2(1, 0));
+        //if(ImGui::BeginCombo("ShaderOpt", shaderOptions[index].c_str())) {}
+
     ImGui::End();
 }
