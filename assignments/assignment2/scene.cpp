@@ -14,7 +14,7 @@
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
-    blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
+    blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong_shadpw.fs");
     depth = std::make_unique<ew::Shader>("assets/shaders/depth.vs", "assets/shaders/depth.fs");
     light = {
         .brightness = 1.0f,
@@ -30,7 +30,7 @@ Scene::Scene()
     CreateFrameBuffer();
     CreateDepthBuffer();
     plane.load(ew::createPlane(100.0f,100.0f, 10));
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    
 }
 void Scene::CreateFrameBuffer() {
 //creating framebuffer
@@ -48,8 +48,10 @@ void Scene::CreateFrameBuffer() {
     
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        printf("were inclomplete\n");
+        printf("were incomplete\n");
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 void Scene::CreateDepthBuffer() {
     glGenFramebuffers(1, &shadow_fbo);
@@ -57,12 +59,12 @@ void Scene::CreateDepthBuffer() {
     glGenTextures(1, &shadow_depth);
     glBindTexture(GL_TEXTURE_2D,shadow_depth);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 800, 600, 0, GL_DEPTH, GL_DEPTH, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 800, 600, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_COMPONENT, GL_TEXTURE_2D, shadow_depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_depth, 0);
     
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -70,6 +72,8 @@ void Scene::CreateDepthBuffer() {
     }
     glDrawBuffers(0, nullptr);
     glReadBuffer(GL_NONE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 Scene::~Scene()
 {
@@ -92,24 +96,16 @@ void Scene::Render(void)
     const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
     const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     const auto light_view_proj = light_proj * light_view;
-    //local scope
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
     {
-        
-
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-
-        depth->setMat4("model", matrix);
-        depth->setMat4("view_proj", view_proj);
-        depth->setVec3("camera_position", camera.position);
-        depth->setMat4("model", matrix);
-        depth->setMat4("light_view_proj", light_view_proj);
-
-        depth->use();
-
-        suzanne->draw();
+        // render depth scene only
+        // depth shader
+        // susazzne
+        // fromt thr light
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -129,17 +125,17 @@ void Scene::Render(void)
         blinnphong->setVec3("light.pos", light.position);
         blinnphong->setVec3("light.color", light.color);
 
+        blinnphong->setMat4("light_view_proj", light_view_proj);
+
         blinnphong->setVec3("material.diffuse", material.diffuse);
         blinnphong->setVec3("material.specular", material.specular);
         blinnphong->setVec3("material.ambient", material.ambient);
         blinnphong->setFloat("material.shininess", material.shininess);
         // draw suzanne
         suzanne->draw();
+        
+        // render lane
     }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Scene::Debug(void)
