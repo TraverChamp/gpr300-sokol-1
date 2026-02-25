@@ -10,7 +10,14 @@
 
 // batteries
 #include "batteries/opengl.h"
-
+enum fx 
+{
+    FX_NONE = 0,
+    FX_INVERT = 1,
+    FX_BLUR = 2,
+    FX_ABBERATION = 3,
+    FX_GRAY = 4,
+};
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
