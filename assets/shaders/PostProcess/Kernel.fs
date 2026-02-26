@@ -15,9 +15,9 @@ uniform sample2D screenTexture;
 const float offset 1.0/3000.0;
 
 const float kernel[9] = float[](
-  1.0/16,2.0/16 1.0/16,
-  2.0/16,4.0/16,2.0/16,
-  1.0/16,2.0/16,1.0/16
+  -1,-1,-1,
+  -1,-9,-1,
+  -1,-1,-1
 )
 const vec2 offsets[9] = vec2[](
   vec2(-offset, offset), //top-left
