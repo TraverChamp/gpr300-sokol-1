@@ -17,6 +17,67 @@ enum fx
     FX_BLUR = 2,
     FX_ABBERATION = 3,
     FX_GRAY = 4,
+    FX_KERNEL = 5,
+    FX_EDGE_DET = 6
+};
+static std::vector<std::string> post_processing_effects = {
+    "None",
+    "Inverse",
+    "Blur",
+    "Chromatic Aberration",
+    "Grayscale",
+    "Sharpening",
+    "Edge Detection",
+};
+struct
+{
+    int index = 0;
+
+    struct
+    {
+        float strength = 16.0f;
+    } blur;
+
+    struct
+    {
+        glm::vec3 offset = glm::vec3(0.009f, 0.006f, -0.006f);
+        glm::vec2 direction = glm::vec2(1.0f);
+    } chromatic;
+} effect;
+void post_process(ew::Shader* shader)
+{
+    shader->use();
+    shader->setInt("texture0", 0);
+
+    // what other uniforms should we send ?
+    switch (effect.index)
+    {
+    case FX_GRAY:
+        break;
+    case FX_BLUR:
+        shader->setFloat("strength", effect.blur.strength);
+        break;
+    case FX_INVERT:
+        break;
+    case EFFECT_ABERRATION:
+        shader->setVec3("offset", effect.chromatic.offset);
+        shader->setVec2("direction", effect.chromatic.direction);
+        break;
+    default:
+        break;
+    }
+    // fullscreen quad pipeline:
+    glDisable(GL_DEPTH_TEST);
+
+    // clear default buffer
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // draw fullscreen quad
+    glBindVertexArray(fullscreen_quad.vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, framebuffer.color0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 };
 Scene::Scene()
 {

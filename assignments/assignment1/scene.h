@@ -21,7 +21,7 @@ class Scene final : public batteries::Scene
     void Update(float dt);
     void Render(void);
     void Debug(void);
-
+    void post_process(ew::Shader* shader);
   private:
   unsigned int fbo;
   unsigned int fbo_color_0;
