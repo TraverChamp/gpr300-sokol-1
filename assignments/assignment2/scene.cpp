@@ -14,7 +14,7 @@
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
-    blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong_shadpw.fs");
+    blinnshadow = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnshadow.fs");
     depth = std::make_unique<ew::Shader>("assets/shaders/depth.vs", "assets/shaders/depth.fs");
     light = {
         .brightness = 1.0f,
@@ -115,22 +115,22 @@ void Scene::Render(void)
         glEnable(GL_DEPTH_TEST);
         // glDisable(GL_DEPTH_TEST);
 
-        blinnphong->use();
+        blinnshadow->use();
 
         // scene matrices
-        blinnphong->setMat4("model", matrix);
-        blinnphong->setMat4("view_proj", view_proj);
-        blinnphong->setVec3("camera_position", camera.position);
+        blinnshadow->setMat4("model", matrix);
+        blinnshadow->setMat4("view_proj", view_proj);
+        blinnshadow->setVec3("camera_position", camera.position);
 
-        blinnphong->setVec3("light.pos", light.position);
-        blinnphong->setVec3("light.color", light.color);
+        blinnshadow->setVec3("light.pos", light.position);
+        blinnshadow->setVec3("light.color", light.color);
 
-        blinnphong->setMat4("light_view_proj", light_view_proj);
+        blinnshadow->setMat4("light_view_proj", light_view_proj);
 
-        blinnphong->setVec3("material.diffuse", material.diffuse);
-        blinnphong->setVec3("material.specular", material.specular);
-        blinnphong->setVec3("material.ambient", material.ambient);
-        blinnphong->setFloat("material.shininess", material.shininess);
+        blinnshadow->setVec3("material.diffuse", material.diffuse);
+        blinnshadow->setVec3("material.specular", material.specular);
+        blinnshadow->setVec3("material.ambient", material.ambient);
+        blinnshadow->setFloat("material.shininess", material.shininess);
         // draw suzanne
         suzanne->draw();
         
