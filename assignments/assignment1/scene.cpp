@@ -29,6 +29,9 @@ static std::vector<std::string> post_processing_effects = {
     "Sharpening",
     "Edge Detection",
 };
+struct debug {
+    float strength = 15.0f;
+};
 struct
 {
     int index = 0;
@@ -76,6 +79,41 @@ struct fullscreen_quad {
         glBindVertexArray(0);
     }
 }fullscreen_quad;
+struct framebuffer {
+    GLuint fbo;
+    GLuint color0;
+    GLuint color1;
+    GLuint color2;
+    GLuint depth;
+    void Initialize() {
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);  
+    glGenTextures(1, &color0);
+    glBindTexture(GL_TEXTURE_2D,color0);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0, 0);
+    
+    // Create depth texture
+    glGenTextures(1, &depth);
+    glBindTexture(GL_TEXTURE_2D, depth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 800, 600, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        printf("were incomplete\n");
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    };
+}framebuffer;
 void post_process(ew::Shader* shader)
 {
     shader->use();
@@ -164,7 +202,13 @@ auto matrix = glm::mat4(1.0f);
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);\
+    {
+        fxShader->use();
+        fxShader->setInt("screen", 0);
+
+        fxShader->setFloat("strength", debug.strength);
+    }
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
