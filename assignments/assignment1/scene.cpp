@@ -59,7 +59,7 @@ void post_process(ew::Shader* shader)
         break;
     case FX_INVERT:
         break;
-    case EFFECT_ABERRATION:
+    case FX_ABBERATION:
         shader->setVec3("offset", effect.chromatic.offset);
         shader->setVec2("direction", effect.chromatic.direction);
         break;
