@@ -102,7 +102,7 @@ void Scene::Render(void)
         // render depth scene only
         // depth shader
         // susazzne
-        // fromt thr light
+        // fromt the light
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
