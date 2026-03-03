@@ -29,9 +29,10 @@ static std::vector<std::string> post_processing_effects = {
     "Sharpening",
     "Edge Detection",
 };
-struct debug {
+struct  {
     float strength = 15.0f;
-};
+    float alpha = 64.0f;
+} debug;
 struct
 {
     int index = 0;
@@ -153,6 +154,7 @@ Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
+    fxShader = std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fullscreen.fs"); // default
 
     light = {
         .brightness = 1.0f,
@@ -202,13 +204,7 @@ auto matrix = glm::mat4(1.0f);
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);\
-    {
-        fxShader->use();
-        fxShader->setInt("screen", 0);
-
-        fxShader->setFloat("strength", debug.strength);
-    }
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -236,6 +232,22 @@ void Scene::Render(void)
         suzanne->draw();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    {
+        fxShader->use();
+        fxShader->setInt("screen", 0);
+
+        //fxShader->setFloat("strength", debug.strength);
+        glDisable(GL_DEPTH_TEST);
+        //default framebuffer
+        glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //Draw fullscreenquad
+        glBindVertexArray(fullscreen_quad.vao);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fbo_color_0);
+        glDrawArrays(GL_TRIANGLES,0,6);
+    }
+    //post_process(fxArray[index].get());
     glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }

@@ -9,9 +9,7 @@
 #include "ew/model.h"
 #include "ew/shader.h"
 #include "ew/texture.h"
-struct {
-float alpha = 64.0f;
-}debug;
+
 class Scene final : public batteries::Scene
 {
   public:
