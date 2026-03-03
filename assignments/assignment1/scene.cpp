@@ -44,6 +44,38 @@ struct
         glm::vec2 direction = glm::vec2(1.0f);
     } chromatic;
 } effect;
+struct fullscreen_quad {
+    GLuint vao;
+    GLuint vbo;
+    void Initialize()
+    {
+        float quad_verts[] = {
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+        };
+        
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+
+        //bind
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_verts), &quad_verts, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(sizeof(float)*2));
+
+        glBindVertexArray(0);
+    }
+}fullscreen_quad;
 void post_process(ew::Shader* shader)
 {
     shader->use();
