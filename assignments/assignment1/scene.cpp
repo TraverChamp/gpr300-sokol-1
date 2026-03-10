@@ -139,6 +139,14 @@ void post_process(ew::Shader* shader)
         shader->setVec3("offset", effect.chromatic.offset);
         shader->setVec2("direction", effect.chromatic.direction);
         break;
+    case FX_EDGE_DET:
+        break;
+    case FX_KERNEL:
+        break;
+    case FX_RIDGE:
+        break;
+    case FX_FISHEYE:
+        break;
     default:
         break;
     }
@@ -159,7 +167,18 @@ Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
-    fxShader = std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/grayscale.fs"); // default
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fullscreen.fs")); // default
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/inverse.fs")); // Inverse
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Blur1.fs")); // Blur
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/chromatic.fs")); // Chroma
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/grayscale.fs")); // Grays
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Kernel.fs")); // Kernel
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Sharpen.fs")); // Sharpening
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/edge.fs")); // Edge
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Ridge.fs")); // Ridge
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fisheye.fs")); // Fisheye
+
+
 
     light = {
         .brightness = 1.0f,
@@ -239,24 +258,8 @@ void Scene::Render(void)
         suzanne->draw();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    {
-        fxShader->use();
-        fxShader->setInt("screen", 0);
-
-        //fxShader->setFloat("strength", debug.strength);
-        glDisable(GL_DEPTH_TEST);
-        //default framebuffer
-        glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //Draw fullscreenquad
-        glBindVertexArray(fullscreen_quad.vao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, fbo_color_0);
-        glDrawArrays(GL_TRIANGLES,0,6);
-    }
-    //post_process(fxArray[index].get());
-    //glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
-    //glClear(GL_COLOR_BUFFER_BIT);
+    
+    post_process(fxShaders[effect.index].get());
 }
 
 void Scene::Debug(void)
@@ -306,7 +309,19 @@ void Scene::Debug(void)
         (void*)(intptr_t)fbo_color_0,
         ImVec2(400, 300),
         ImVec2(0, 1), ImVec2(1, 0));
-        //if(ImGui::BeginCombo("ShaderOpt", shaderOptions[index].c_str())) {}
+        if(ImGui::BeginCombo("ShaderOpt", post_processing_effects[effect.index].c_str())) {
+            for (auto n = 0; n < post_processing_effects.size(); ++n)
+        {
+            auto is_selected = (post_processing_effects[effect.index] == post_processing_effects[n]);
+            if (ImGui::Selectable(post_processing_effects[n].c_str(), is_selected))
+            {
+                effect.index = n;
+            }
+            if (is_selected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
 
     ImGui::End();
 }
