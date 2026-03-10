@@ -18,7 +18,9 @@ enum fx
     FX_ABBERATION = 3,
     FX_GRAY = 4,
     FX_KERNEL = 5,
-    FX_EDGE_DET = 6
+    FX_EDGE_DET = 6,
+    FX_RIDGE = 7,
+    FX_FISHEYE = 8,
 };
 static std::vector<std::string> post_processing_effects = {
     "None",
@@ -26,8 +28,11 @@ static std::vector<std::string> post_processing_effects = {
     "Blur",
     "Chromatic Aberration",
     "Grayscale",
+    "Kernel Base",
     "Sharpening",
     "Edge Detection",
+    "Ridge",
+    "Fisheye"
 };
 struct  {
     float strength = 15.0f;
@@ -154,7 +159,7 @@ Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
-    fxShader = std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fullscreen.fs"); // default
+    fxShader = std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/grayscale.fs"); // default
 
     light = {
         .brightness = 1.0f,
@@ -167,6 +172,8 @@ Scene::Scene()
         .specular = {0.5f, 0.5f, 0.5f},
         .shininess = 1.0f,
     }; 
+    fullscreen_quad.Initialize();
+
     //creating framebuffer
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);  
@@ -248,8 +255,8 @@ void Scene::Render(void)
         glDrawArrays(GL_TRIANGLES,0,6);
     }
     //post_process(fxArray[index].get());
-    glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
+    //glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Scene::Debug(void)
