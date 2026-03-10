@@ -120,7 +120,7 @@ struct framebuffer {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
     };
 }framebuffer;
-void post_process(ew::Shader* shader)
+    void post_process(ew::Shader* shader)
 {
     shader->use();
     shader->setInt("texture0", 0);
@@ -259,7 +259,7 @@ void Scene::Render(void)
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    post_process(fxShaders[effect.index].get());
+    Scene::post_process(fxShaders[effect.index].get());
 }
 
 void Scene::Debug(void)
