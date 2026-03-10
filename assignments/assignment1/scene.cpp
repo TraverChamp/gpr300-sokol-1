@@ -325,3 +325,4 @@ void Scene::Debug(void)
 
     ImGui::End();
 }
+}
