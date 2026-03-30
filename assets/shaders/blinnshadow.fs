@@ -19,9 +19,12 @@ in vec3 vs_normal;
 in vec2 vs_texcoord;
 in vec4 vs_light_proj_pos;
 
+
+uniform sampler2D shadow_map;
 uniform vec3 camera;
 uniform Light light;
 uniform Material material;
+
 
 float shadowCalc(vec4 fragposLightSpace) {
   float shadow = 0.255;
@@ -30,7 +33,7 @@ float shadowCalc(vec4 fragposLightSpace) {
 
   proj_coords = proj_coords * 0.5 + 0.5;
 
-  float closest_depth = texture(shadowMap, proj_coords.xy).r;
+  float closest_depth = texture(shadow_map, proj_coords.xy).r;
   float current_depth = proj_coords.z;
   shadow = (current_depth > closest_depth) ? 1.0 : 0;
   return shadow;

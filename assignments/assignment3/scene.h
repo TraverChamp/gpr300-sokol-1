@@ -1,14 +1,16 @@
 #pragma once
 
 // batteries
-#include "batteries/scene.h"
 #include "batteries/lights.h"
-#include "batteries/materials.h"
+#include "batteries/scene.h"
 
 // ew
 #include "ew/model.h"
 #include "ew/shader.h"
 #include "ew/texture.h"
+
+// std
+#include <vector>
 
 class Scene final : public batteries::Scene
 {
@@ -16,19 +18,25 @@ class Scene final : public batteries::Scene
     Scene();
     virtual ~Scene();
 
-    void CacheInstanceData();
     void Update(float dt);
     void Render(void);
     void Debug(void);
-    void post_process(ew::Shader* shader);
-  private:
-  unsigned int fbo;
-  unsigned int fbo_color_0;
-  unsigned int fbo_depth;
-    std::unique_ptr<ew::Model> suzanne;
-    std::unique_ptr<ew::Shader> blinnphong;
 
-    std::vector<std::unique_ptr<ew::Shader>> fxShaders;
+  private:
+    void InitializeInstanceData(void);
+
+  private:
+    std::unique_ptr<ew::Model> suzanne;
+    std::unique_ptr<ew::Shader> geometry;
+    std::unique_ptr<ew::Shader> blinnphong;
+    std::unique_ptr<ew::Shader> noprocess;
+    std::unique_ptr<ew::Shader> lightsphere;
+    std::unique_ptr<ew::Texture> texture;
+
+    batteries::ambient_t ambient;
     batteries::light_t light;
-    batteries::material_t material;
+    ew::Mesh sphere;
+
+    std::vector<glm::mat4> model_instances;
+    std::vector<batteries::light_t> light_instances;
 };
