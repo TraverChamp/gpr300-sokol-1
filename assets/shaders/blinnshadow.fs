@@ -17,10 +17,12 @@ struct Material {
 in vec3 vs_position;
 in vec3 vs_normal;
 in vec2 vs_texcoord;
+in vec4 vs_light_proj_pos;
 
 uniform vec3 camera;
 uniform Light light;
 uniform Material material;
+
 float shadowCalc(vec4 fragposLightSpace) {
   float shadow = 0.255;
   //divide perspective
