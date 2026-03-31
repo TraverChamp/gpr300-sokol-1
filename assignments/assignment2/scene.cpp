@@ -30,7 +30,6 @@ Scene::Scene()
     CreateFrameBuffer();
     CreateDepthBuffer();
     plane.load(ew::createPlane(100.0f,100.0f, 10));
-    
 }
 void Scene::CreateFrameBuffer() {
 //creating framebuffer
@@ -148,7 +147,9 @@ void Scene::Render(void)
         // draw suzanne
         suzanne->draw();
         
-        // render lane
+        // draw plane
+        blinnshadow->setMat4("model", glm::translate(debug.identity, debug.plane_pos));
+        plane.draw();
     }
 }
 

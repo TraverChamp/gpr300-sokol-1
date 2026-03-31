@@ -14,6 +14,8 @@ float alpha = 64.0f;
 float bias = 0.005f;
 bool cull_front = false;
 bool use_pcf = false;
+glm::mat4 identity = glm::mat4(1.0f);
+glm::vec3 plane_pos = glm::vec3{0.0f, -2.0f, 0.0f};
 }debug;
 class Scene final : public batteries::Scene
 {
