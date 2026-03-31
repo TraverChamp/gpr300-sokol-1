@@ -14,7 +14,7 @@
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
-    blinnshadow = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnshadow.fs");
+    blinnshadow = std::make_unique<ew::Shader>("assets/shaders/blinnshadow.vs", "assets/shaders/blinnshadow.fs");
     depth = std::make_unique<ew::Shader>("assets/shaders/depth.vs", "assets/shaders/depth.fs");
     light = {
         .brightness = 1.0f,
@@ -117,6 +117,7 @@ void Scene::Render(void)
         depth->setMat4("model", matrix);
         depth->setMat4("light_view_proj", light_view_proj);
 
+        suzanne->draw();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     {
