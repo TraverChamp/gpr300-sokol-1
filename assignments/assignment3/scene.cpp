@@ -139,8 +139,19 @@ struct LighVolumebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
         // position attachment
+        glGenTextures(1, &color);
+        glBindTexture(GL_TEXTURE_2D, color);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
         // depth attachment
-
+        glGenTextures(1, &depth);
+        glBindTexture(GL_TEXTURE_2D, depth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, kFramebufferWidth, kFramebufferHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
         // check completeness
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         {
@@ -170,9 +181,9 @@ Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
     geometry = std::make_unique<ew::Shader>("assets/shaders/deferred/geometry.vs", "assets/shaders/deferred/geometry.fs");
-    //blinnphong = std::make_unique<ew::Shader>("assets/shaders/deferred/blinnphong.vs", "assets/shaders/deferred/blinnphong.fs");
+    blinnphong = std::make_unique<ew::Shader>("assets/shaders/deferred/blinnphong.vs", "assets/shaders/deferred/blinnphong.fs");
     noprocess = std::make_unique<ew::Shader>("assets/shaders/deferred/default.vs", "assets/shaders/deferred/default.fs");
-    //lightsphere = std::make_unique<ew::Shader>("assets/shaders/deferred/light.vs", "assets/shaders/deferred/light.fs");
+    lightsphere = std::make_unique<ew::Shader>("assets/shaders/deferred/light.vs", "assets/shaders/deferred/light.fs");
     
     sphere.load(ew::createSphere(1.0f, 8));
 
@@ -182,7 +193,7 @@ Scene::Scene()
     };
 
     framebuffer.Initialize();
-    //lightvolumebuffer.Initialize();
+    lightvolumebuffer.Initialize();
     fullscreen_quad.Initialize();
 
     InitializeInstanceData();
@@ -265,6 +276,48 @@ void Scene::Render(void)
     // render volume lights
     glBindFramebuffer(GL_FRAMEBUFFER, lightvolumebuffer.fbo);
     {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+        glBlendEquation(GL_FUNC_ADD);
+
+        glDisable(GL_DEPTH_TEST);
+        glCullFace(GL_FRONT);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.position);
+
+         glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.normal);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.albedo);
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.material);
+
+        blinnphong->use();
+        blinnphong->setMat4("view_proj", view_proj);
+        blinnphong->setVec3("camera_position", camera.position);
+        blinnphong->setVec2("textureSize", glm::vec2(kFramebufferWidth, kFramebufferHeight));
+
+        blinnphong->setInt("g_position", 0);
+        blinnphong->setInt("g_normal", 1);
+        blinnphong->setInt("g_albedo", 2);
+        blinnphong->setInt("g_material", 3);
+
+        for (const auto &light : light_instances)
+        {
+            const auto scale = debug.light_radius;
+            blinnphong->setMat4("model", glm::translate(glm::mat4(1.0f), light.position) * glm::scale(glm::mat4(1.0f), glm::vec3(scale)));
+            blinnphong->setVec3("light.position", light.position);
+            blinnphong->setVec3("light.color", light.color);
+            blinnphong->setFloat("light.radius", debug.light_radius);
+
+            sphere.draw();
+        }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -292,9 +345,36 @@ void Scene::Render(void)
     }
 
     { // render light sources
+        glEnable(GL_DEPTH_TEST);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, kFramebufferWidth, kFramebufferHeight, 0, 0, sapp_widthf(), sapp_heightf(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        lightsphere->use();
+
+        auto i = 0;
+        for (auto x = -debug.width; x <= debug.width; x++)
+        {
+            for (auto y = -debug.width; y <= debug.width; y++, i++)
+            {
+                lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f)));
+                lightsphere->setMat4("view_proj", view_proj);
+                lightsphere->setVec3("color", light_instances[i].color);
+                sphere.draw();
+
+                if (debug.draw_light_volume)
+                {
+                    const auto scale = debug.light_radius;
+                    lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(scale)));
+                    sphere.draw(ew::DrawMode::LINES);
+                } 
+            }
+    }
+
     }
 }
-
 void Scene::Debug(void)
 {
     cameracontroller.Debug();
