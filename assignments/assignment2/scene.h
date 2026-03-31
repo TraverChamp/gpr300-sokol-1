@@ -11,6 +11,9 @@
 #include "ew/texture.h"
 struct {
 float alpha = 64.0f;
+float bias = 0.005f;
+bool cull_front = false;
+bool use_pcf = false;
 }debug;
 class Scene final : public batteries::Scene
 {

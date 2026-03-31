@@ -103,9 +103,22 @@ void Scene::Render(void)
         // depth shader
         // susazzne
         // fromt the light
+        glEnable(GL_CULL_FACE);
+        if(debug.cull_front == true) {
+            glCullFace(GL_FRONT);
+        }
+        else {
+            glCullFace(GL_BACK);
+        }
+        glEnable(GL_DEPTH_TEST);
+
+        depth->use();
+
+        depth->setMat4("model", matrix);
+        depth->setMat4("light_view_proj", light_view_proj);
+
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
