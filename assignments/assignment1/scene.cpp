@@ -177,7 +177,7 @@ Scene::Scene()
     fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Sharpen.fs")); // Sharpening
     fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/edge.fs")); // Edge
     fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Ridge.fs")); // Ridge
-    // fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fisheye.fs")); // Fisheye
+    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fisheye.fs")); // Fisheye
 
 
 

@@ -6,8 +6,7 @@ out vec4 FragColor;
 in vec2 vs_texcoord;
 
 // uniforms
-uniform sampler2D screen;
-vec4 gl_Position;
+uniform sampler2D screenTexture;
 const float PI = 3.1315926535;
 void main()
 {
@@ -16,7 +15,7 @@ void main()
   float maxFactor = sin(apertureHalf);
   
   vec2 uv;
-  vec2 xy = 2.0 * Vertex_UV.xy - 1.0;
+  vec2 xy = 2.0 * vs_texcoord.xy - 1.0;
   float d = length(xy);
   if (d < (2.0-maxFactor))
   {
@@ -30,8 +29,8 @@ void main()
   }
   else
   {
-    uv = Vertex_UV.xy;
+    uv = vs_texcoord.xy;
   }
-  vec4 c = texture2D(tex0, uv);
-  gl_FragColor = c;
+  vec4 c = texture(screenTexture, uv);
+  FragColor = c;
 }
