@@ -54,5 +54,5 @@ void main()
   vec4 material = texture(g_material, uv).rgba;
 
   vec3 lighting = blinnPhong(position, normal, material);
-  frag_lighting = vec4(light.color, 1.0);
+  frag_lighting = vec4(lighting, 1.0);
 }
