@@ -53,7 +53,7 @@ vec3 blinnPhong(vec3 normal, vec3 frag_pos, Light light) {
   vec3 diffuse = NDotL * material.diffuse;
   vec3 specular = pow(NDotH, material.shininess *128.0) * material.specular;
 
-  return (material.ambient + diffuse + specular) * light.color;
+  return (diffuse + specular) * light.color;
 }
 
 void main()
@@ -63,7 +63,7 @@ void main()
   vec3 color = blinnPhong(norm, vs_position, light);
   
   color *= (1.0 - shadow);
-  color += vec3(1.0,1.0,1.0);
+  color += material.ambient;
   color*= light.color;
  
   vec3 objColor = norm * 0.5 + 0.5;
