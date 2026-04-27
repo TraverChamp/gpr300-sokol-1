@@ -85,7 +85,7 @@ struct fullscreen_quad {
         glBindVertexArray(0);
     }
 }fullscreen_quad;
-struct framebuffer {
+struct Framebuffer {
     GLuint fbo;
     GLuint color0;
     GLuint color1;
@@ -120,10 +120,11 @@ struct framebuffer {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
     };
 }framebuffer;
-    void post_process(ew::Shader* shader)
+
+void Scene::post_process(ew::Shader* shader)
 {
     shader->use();
-    shader->setInt("texture0", 0);
+    shader->setInt("screenTexture", 0);
 
     // what other uniforms should we send ?
     switch (effect.index)
@@ -160,7 +161,7 @@ struct framebuffer {
     // draw fullscreen quad
     glBindVertexArray(fullscreen_quad.vao);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, framebuffer.color0);
+    glBindTexture(GL_TEXTURE_2D, fbo_color_0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 };
 Scene::Scene()
@@ -176,7 +177,7 @@ Scene::Scene()
     fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Sharpen.fs")); // Sharpening
     fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/edge.fs")); // Edge
     fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/Ridge.fs")); // Ridge
-    fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fisheye.fs")); // Fisheye
+    // fxShaders.push_back(std::make_unique<ew::Shader>("assets/shaders/PostProcess/fullscreen.vs", "assets/shaders/PostProcess/fisheye.fs")); // Fisheye
 
 
 
@@ -259,7 +260,7 @@ void Scene::Render(void)
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    Scene::post_process(fxShaders[effect.index].get());
+    post_process(fxShaders[effect.index].get());
 }
 
 void Scene::Debug(void)
@@ -309,8 +310,8 @@ void Scene::Debug(void)
         (void*)(intptr_t)fbo_color_0,
         ImVec2(400, 300),
         ImVec2(0, 1), ImVec2(1, 0));
-        if(ImGui::BeginCombo("ShaderOpt", post_processing_effects[effect.index].c_str())) {
-            for (auto n = 0; n < post_processing_effects.size(); ++n)
+    if(ImGui::BeginCombo("ShaderOpt", post_processing_effects[effect.index].c_str())) {
+        for (auto n = 0; n < post_processing_effects.size(); ++n)
         {
             auto is_selected = (post_processing_effects[effect.index] == post_processing_effects[n]);
             if (ImGui::Selectable(post_processing_effects[n].c_str(), is_selected))
@@ -323,6 +324,8 @@ void Scene::Debug(void)
             }
         }
 
+        ImGui::EndCombo();
+    }
+
     ImGui::End();
-}
 }
