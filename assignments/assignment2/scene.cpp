@@ -93,7 +93,7 @@ void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
     const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
-    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     const auto light_view_proj = light_proj * light_view;
     
     glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);

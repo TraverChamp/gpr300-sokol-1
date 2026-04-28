@@ -324,7 +324,7 @@ void Scene::Render(void)
     { // render fullscreen quad
         noprocess->use();
         noprocess->setInt("screen", 0);
-
+        noprocess->setInt("lighting", 1);
         // fullscreen quad pipeline:
         glDisable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
@@ -345,6 +345,7 @@ void Scene::Render(void)
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        glBindVertexArray(0);
     }
 
     { // render light sources
