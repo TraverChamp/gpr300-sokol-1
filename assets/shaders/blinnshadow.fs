@@ -35,7 +35,8 @@ float shadowCalc(vec4 fragposLightSpace) {
 
   float closest_depth = texture(shadow_map, proj_coords.xy).r;
   float current_depth = proj_coords.z;
-  shadow = (current_depth > closest_depth) ? 1.0 : 0;
+  float bias = 0.005;
+  shadow = (current_depth - bias > closest_depth) ? 1.0 : 0;
   return shadow;
 }
 vec3 blinnPhong(vec3 normal, vec3 frag_pos, Light light) {
@@ -62,10 +63,11 @@ void main()
   float shadow = shadowCalc(vs_light_proj_pos);
   vec3 color = blinnPhong(norm, vs_position, light);
   
-  color *= (1.0 - shadow);
   color += material.ambient;
   color*= light.color;
- 
+  color *= (1.0 - shadow);
+
+
   vec3 objColor = norm * 0.5 + 0.5;
   vec3 finalC = color*objColor;
   FragColor = vec4(finalC, 1.0);

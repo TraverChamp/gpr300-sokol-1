@@ -60,8 +60,10 @@ void Scene::CreateDepthBuffer() {
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 800, 600, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_depth, 0);
     
@@ -93,31 +95,10 @@ void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
     const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
-    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     const auto light_view_proj = light_proj * light_view;
     
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
-    {
-        // render depth scene only
-        // depth shader
-        // susazzne
-        // fromt the light
-        glEnable(GL_CULL_FACE);
-        if(debug.cull_front == true) {
-            glCullFace(GL_FRONT);
-        }
-        else {
-            glCullFace(GL_BACK);
-        }
-        glEnable(GL_DEPTH_TEST);
-
-        depth->use();
-
-        depth->setMat4("model", matrix);
-        depth->setMat4("light_view_proj", light_view_proj);
-
-        suzanne->draw();
-    }
+   
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -127,6 +108,10 @@ void Scene::Render(void)
         glCullFace(GL_BACK);
         glEnable(GL_DEPTH_TEST);
         // glDisable(GL_DEPTH_TEST);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, shadow_depth);
+
 
         blinnshadow->use();
 
@@ -151,6 +136,26 @@ void Scene::Render(void)
         blinnshadow->setMat4("model", glm::translate(debug.identity, debug.plane_pos));
         plane.draw();
     }
+     glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
+    {
+        // render depth scene only
+        // depth shader
+        // susazzne
+        // fromt the light
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glEnable(GL_DEPTH_TEST);
+
+        depth->use();
+
+        depth->setMat4("model", matrix);
+        depth->setMat4("light_view_proj", light_view_proj);
+
+        suzanne->draw();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Scene::Debug(void)
@@ -160,15 +165,15 @@ void Scene::Debug(void)
     ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
 
-    auto *view = glm::value_ptr(camera.View());
-    auto *proj = glm::value_ptr(camera.Projection());
+    auto view = camera.View();
+    auto proj = camera.Projection();
     
-    ImGuizmo::DrawGrid(view, proj, glm::value_ptr(glm::mat4(1.0f)), 100.0f);
+    ImGuizmo::DrawGrid(&view[0][0], &proj[0][0], glm::value_ptr(glm::mat4(1.0f)), 100.0f);
 
     glm::mat4 light_matrix = glm::translate(glm::mat4(1.0f), light.position);
     ImGuizmo::Manipulate(
-        view,
-        proj,
+        &view[0][0],
+        &proj[0][0],
         ImGuizmo::TRANSLATE,
         ImGuizmo::WORLD,
         glm::value_ptr(light_matrix)
